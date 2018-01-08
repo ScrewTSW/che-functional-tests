@@ -30,6 +30,9 @@ public class CommandsManager {
     @Root
     private WebElement rootElement;
 
+    @FindBy(id = "gwt-debug-commands-explorer")
+    private WebElement commandExplorer;
+
     @FindBy(id = "commands_tree-button-add")
     private WebElement buildPlus;
 
@@ -56,4 +59,9 @@ public class CommandsManager {
         CommandsManagerRow row = new CommandsManagerRow(testName, driver);
         row.removeCommand();
     }
+
+    public boolean isCommandsExplorerOpen() {
+        return commandExplorer.isDisplayed();
+    }
+
 }

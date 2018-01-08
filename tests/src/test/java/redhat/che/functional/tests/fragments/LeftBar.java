@@ -21,6 +21,7 @@ import redhat.che.functional.tests.utils.ActionUtils;
 
 import static org.jboss.arquillian.graphene.Graphene.guardAjax;
 import static org.jboss.arquillian.graphene.Graphene.guardNoRequest;
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
 
 /*
  * root div[id="gwt-debug-toolbarPanel"]
@@ -36,11 +37,9 @@ public class LeftBar {
     @FindBy(id = "gwt-debug-partButton-Commands")
     private WebElement commandsPart;
 
-
     /**
      * Clicks button to execute selected command.
      */
-
 
     public void openCommandsPart() {
         guardAjax(commandsPart).click();

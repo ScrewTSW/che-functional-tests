@@ -66,7 +66,7 @@ public class MavenTestCase extends AbstractCheFunctionalTest{
     @Test
     public void test_maven_build() {
         //creating build command in left commands panel
-        leftBar.openCommandsPart();
+        if (!commandsManager.isCommandsExplorerOpen()) leftBar.openCommandsPart();
         commandsManager.openEditPanelForAddingBuildCommand();
         commandsEditor.addNewCommand(testName, command);
         commandsEditor.runOpenedCommand();
