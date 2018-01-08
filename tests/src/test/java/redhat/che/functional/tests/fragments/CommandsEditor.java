@@ -10,7 +10,6 @@
  ******************************************************************************/
 package redhat.che.functional.tests.fragments;
 
-import javafx.scene.web.WebView;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.fragment.Root;
