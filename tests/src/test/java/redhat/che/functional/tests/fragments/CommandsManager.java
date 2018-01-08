@@ -18,8 +18,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import redhat.che.functional.tests.utils.ActionUtils;
 
-import java.util.concurrent.TimeUnit;
-
 import static org.jboss.arquillian.graphene.Graphene.waitGui;
 
 public class CommandsManager {
