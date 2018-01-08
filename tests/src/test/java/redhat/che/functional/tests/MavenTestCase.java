@@ -26,6 +26,7 @@ import redhat.che.functional.tests.fragments.LeftBar;
 import java.util.concurrent.TimeUnit;
 
 import static org.jboss.arquillian.graphene.Graphene.guardAjax;
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
 import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 /**
@@ -74,6 +75,7 @@ public class MavenTestCase extends AbstractCheFunctionalTest{
         //creating build command in left commands panel
         if (!commandsManager.isCommandsExplorerOpen()) leftBar.openCommandsPart();
         commandsManager.openEditPanelForAddingBuildCommand();
+        commandsEditor.waitTillEditorVisible();
         commandsEditor.addNewCommand(testName, command);
         commandsEditor.runOpenedCommand();
 

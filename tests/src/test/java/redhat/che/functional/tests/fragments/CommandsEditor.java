@@ -10,6 +10,7 @@
  ******************************************************************************/
 package redhat.che.functional.tests.fragments;
 
+import javafx.scene.web.WebView;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.graphene.fragment.Root;
@@ -49,7 +50,6 @@ public class CommandsEditor {
     @FindBy(id = "gwt-debug-command-editor-button-run")
     private WebElement runButton;
 
-
     public void addNewCommand(String testName, String command) {
         waitGui().until(webDriver -> webDriver.switchTo().activeElement().equals(cmdInput) || webDriver.switchTo().activeElement().equals(previewURL));
         nameInput.clear();
@@ -66,4 +66,9 @@ public class CommandsEditor {
         waitGui().until().element(runButton).is().enabled();
         guardAjax(runButton).click();
     }
+
+    public void waitTillEditorVisible() {
+        waitGui().until("Script editor did not open").element(root).is().visible();
+    }
+
 }
