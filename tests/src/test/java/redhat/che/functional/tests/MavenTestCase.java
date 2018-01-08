@@ -26,7 +26,6 @@ import redhat.che.functional.tests.fragments.LeftBar;
 import java.util.concurrent.TimeUnit;
 
 import static org.jboss.arquillian.graphene.Graphene.guardAjax;
-import static org.jboss.arquillian.graphene.Graphene.waitGui;
 import static org.jboss.arquillian.graphene.Graphene.waitModel;
 
 /**
