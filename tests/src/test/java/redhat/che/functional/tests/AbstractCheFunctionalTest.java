@@ -11,36 +11,37 @@
 package redhat.che.functional.tests;
 
 import com.redhat.arquillian.che.resource.CheWorkspace;
-
 import org.apache.log4j.Logger;
+import org.arquillian.extension.recorder.screenshooter.Screenshooter;
 import org.jboss.arquillian.drone.api.annotation.Drone;
-import redhat.che.functional.tests.fragments.EditorPart;
-import redhat.che.functional.tests.fragments.Project;
-
 import org.jboss.arquillian.graphene.findby.FindByJQuery;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.NoAlertPresentException;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import redhat.che.functional.tests.fragments.EditorPart;
+import redhat.che.functional.tests.fragments.Project;
 import redhat.che.functional.tests.fragments.window.AskForValueDialog;
 import redhat.che.functional.tests.utils.ActionUtils;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.jboss.arquillian.graphene.Graphene.waitModel;
+import static org.jboss.arquillian.graphene.Graphene.waitGui;
 import static redhat.che.functional.tests.utils.Constants.*;
 
 @RunWith(Arquillian.class)
 public abstract class AbstractCheFunctionalTest {
 	private static final Logger LOG = Logger.getLogger(AbstractCheFunctionalTest.class);
 
-    @Drone
+	@Drone
     protected WebDriver driver;
+
+	@ArquillianResource
+    protected Screenshooter screenshooter;
 
     @FindByJQuery("#gwt-debug-projectTree > div:contains('" + VERTX_PROJECT_NAME + "'):first")
     protected Project vertxProject;
@@ -54,8 +55,14 @@ public abstract class AbstractCheFunctionalTest {
     @FindByJQuery("#gwt-debug-popup-container:contains('Workspace is running')")
     private WebElement workspaceIsRunningPopup;
 
-    @FindByJQuery("#username, #gwt-debug-popup-container:contains('Workspace is running')")
-    private WebElement loginPageOrworkspaceIsRunningPopup;
+    @FindByJQuery("#username, #ide-application-frame")
+    private WebElement workspaceOrLoginPage;
+
+    @FindByJQuery(".inDown, .gwt-Label")
+    private WebElement workspaceIsStartingUp;
+
+    @FindByJQuery("#ide-application-frame, #gwt-debug-popup-container:contains('Workspace is running'), .inDown, .gwt-Label")
+    private WebElement workspacePresentIndicator;
 
     @FindBy(id = "username")
     private WebElement usernameField;
@@ -79,12 +86,19 @@ public abstract class AbstractCheFunctionalTest {
     protected void openBrowser(CheWorkspace wkspc) {
         LOG.info("Opening browser");
         driver.get(wkspc.getIdeLink());
-        waitModel().until().element(loginPageOrworkspaceIsRunningPopup).is().visible();
-        if ("username".equals(loginPageOrworkspaceIsRunningPopup.getAttribute("id"))) {
-            login();
-            waitUntilWorkspaceIsRunningElseRefresh();
-        }
-        waitModel().until().element(workspaceIsRunningPopup).is().not().visible();
+        driver.manage().window().maximize();
+//        driver.manage().deleteAllCookies();
+        screenshooter.setScreenshotTargetDir("target/screenshots");
+        // ... other possible options and settings;
+        waitUntilWorkspaceOrLoginIsDisplayed();
+        waitUntilWorkspaceIsRunningElseRefresh();
+//        waitGui().until().element(workspaceOrLoginPage).is().visible();
+//        if ("username".equals(workspaceOrLoginPage.getAttribute("id"))) {
+//            login();
+//            waitUntilWorkspaceIsRunningElseRefresh();
+//        }
+
+        waitGui().until().element(workspaceIsRunningPopup).is().not().visible();
     }
 
     /**
@@ -92,22 +106,61 @@ public abstract class AbstractCheFunctionalTest {
 	 * Should be removed once resolved.
 	 */
 	private void waitUntilWorkspaceIsRunningElseRefresh() {
-		waitModel().withTimeout(3, TimeUnit.MINUTES).until(driver -> {
-			try {
-				waitModel().until().element(loginPageOrworkspaceIsRunningPopup).is().visible();
-				return true;
-			}catch(WebDriverException e) {
-				try {
-					driver.switchTo().alert().accept();
-				}catch (NoAlertPresentException ex) {
-					// Alert didn't come up. Do nothing.
-				}
-				driver.navigate().refresh();
-				return false;
-			}
-		});
-		
+	    try {
+            waitGui().withTimeout(20, TimeUnit.SECONDS).until("Workspace did not display.").element(workspacePresentIndicator).is().visible();
+        } catch (WebDriverException e) {
+            exitWithError("Workspace did not open."+e.getMessage());
+        }
+        try {
+            if (workspaceIsStartingUp.isDisplayed()) {
+                waitGui().withTimeout(3, TimeUnit.MINUTES).withMessage("Workspace did not start up.").until(webDriver -> {
+                    try {
+                        waitGui().until("Workspace is still starting up...").element(workspaceIsStartingUp).is().not().visible();
+                        return true;
+                    } catch (WebDriverException e) {
+                        LOG.info("Inner check timed out, refreshing.");
+                        screenshooter.takeScreenshot();
+                        driver.navigate().refresh();
+                        return false;
+                    }
+                });
+            } else {
+                waitGui().withTimeout(3, TimeUnit.MINUTES).withMessage("Workspace did not start up.").until(webDriver -> {
+                    try {
+                        waitGui().until().element(workspaceIsRunningPopup).is().visible();
+                        return true;
+                    } catch (WebDriverException e) {
+                        try {
+                            webDriver.switchTo().alert().accept();
+                        } catch (NoAlertPresentException ex) {
+                            // Alert didn't come up. Do nothing.
+                        }
+                        screenshooter.takeScreenshot();
+                        webDriver.navigate().refresh();
+                        return false;
+                    }
+                });
+            }
+        } catch (WebDriverException e) {
+	        exitWithError(e.getMessage());
+        }
 	}
+
+	public void waitUntilWorkspaceOrLoginIsDisplayed() {
+        try {
+            waitGui().withTimeout(3, TimeUnit.MINUTES).withMessage("Workspace nor LogIn screen was displayed.").until(webDriver -> {
+                if (workspaceOrLoginPage.isDisplayed()) {
+                    if ("username".equals(workspaceOrLoginPage.getAttribute("id"))) {
+                        login();
+                    }
+                    return true;
+                }
+                return workspaceOrLoginPage.isDisplayed();
+            });
+        } catch (WebDriverException e) {
+            exitWithError("Webspace nor LogIn page could be loaded:" + e.getMessage());
+        }
+    }
 
 	private void login() {
     	LOG.info("Logging in");
@@ -126,4 +179,11 @@ public abstract class AbstractCheFunctionalTest {
         askForValueDialog.clickOkBtn();
         askForValueDialog.waitFormToClose();
     }
+
+    private void exitWithError(String err) {
+        screenshooter.takeScreenshot();
+	    LOG.error(err);
+	    System.exit(1);
+    }
+
 }
