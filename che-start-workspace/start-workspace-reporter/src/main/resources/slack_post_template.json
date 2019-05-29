@@ -1,0 +1,206 @@
+{
+  "channel": "@tdancs",
+  "attachments": [
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "fields": [
+        {
+          "title": "starter-us-east-1a PVC",
+          "short": true
+        },
+        {
+          "title": "starter-us-east-1a EPH",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_1A_START_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_1A_PVC_START_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_1A_EPH_START_VALUES",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_1A_STOP_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_1A_PVC_STOP_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_1A_EPH_STOP_VALUES",
+          "short": true
+        }
+      ]
+    },{
+      "fallback": "These are the test results of worksapce startup stability.",
+      "fields": [
+        {
+          "title": "starter-us-east-1b PVC",
+          "short": true
+        },
+        {
+          "title": "starter-us-east-1b EPH",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_1B_START_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_1B_PVC_START_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_1B_EPH_START_VALUES",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_1B_STOP_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_1B_PVC_STOP_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_1B_EPH_STOP_VALUES",
+          "short": true
+        }
+      ]
+    },{
+      "fallback": "These are the test results of worksapce startup stability.",
+      "fields": [
+        {
+          "title": "starter-us-east-2 PVC",
+          "short": true
+        },
+        {
+          "title": "starter-us-east-2 EPH",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2_START_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2_PVC_START_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2_EPH_START_VALUES",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2_STOP_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2_PVC_STOP_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2_EPH_STOP_VALUES",
+          "short": true
+        }
+      ]
+    },{
+      "fallback": "These are the test results of worksapce startup stability.",
+      "fields": [
+        {
+          "title": "starter-us-east-2a PVC",
+          "short": true
+        },
+        {
+          "title": "starter-us-east-2a EPH",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2A_START_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2A_PVC_START_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2A_EPH_START_VALUES",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2A_STOP_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2A_PVC_STOP_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2A_EPH_STOP_VALUES",
+          "short": true
+        }
+      ]
+    },{
+      "fallback": "These are the test results of worksapce startup stability.",
+      "fields": [
+        {
+          "title": "starter-us-east-2a PVC Preview",
+          "short": true
+        },
+        {
+          "title": "starter-us-east-2a EPH Preview",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2A_PREVIEW_START_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2A_PREVIEW_PVC_START_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2A_PREVIEW_EPH_START_VALUES",
+          "short": true
+        }
+      ]
+    },
+    {
+      "fallback": "These are the test results of worksapce startup stability.",
+      "color": "STARTER_US_EAST_2A_PREVIEW_STOP_COLOR",
+      "fields": [
+        {
+          "value": "STARTER_US_EAST_2A_PREVIEW_PVC_STOP_VALUES",
+          "short": true
+        },
+        {
+          "value": "STARTER_US_EAST_2A_PREVIEW_EPH_STOP_VALUES",
+          "short": true
+        }
+      ]
+    }
+  ]
+}
