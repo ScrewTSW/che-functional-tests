@@ -1,204 +1,89 @@
 {
-  "channel": "#devtools-che",
+  "text": "@osioche Screens link:https://zabbix.devshift.net:9443/zabbix/screenconf.php?filter_name=che-perf&filter_set=Filter\nWorkspace startup cluster status:",
+  "mrkdwn": true,
+  "unfurl_links": false,
   "attachments": [
     {
-      "pretext": "Workspace startup daily status report",
-      "fallback": "These are the test results of worksapce startup stability.",
+      "fallback": "Required plain-text summary of the attachment.",
+      "color": "STARTER_US_EAST_1A_COLOR",
+      "mrkdwn_in": ["fields"],
       "fields": [
         {
-          "title": "starter-us-east-1a PVC",
+          "title": "Cluster 1a start",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         },
         {
-          "title": "starter-us-east-1a EPH",
+          "title": "Cluster 1a stop",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         }
       ]
     },
     {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_1A_START_COLOR",
+      "fallback": "Required plain-text summary of the attachment.",
+      "color": "STARTER_US_EAST_1B_COLOR",
+      "mrkdwn_in": ["fields"],
       "fields": [
         {
-          "value": "STARTER_US_EAST_1A_PVC_START_VALUES",
+          "title": "Cluster 1b start",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         },
         {
-          "value": "STARTER_US_EAST_1A_EPH_START_VALUES",
+          "title": "Cluster 1b stop",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         }
       ]
     },
     {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_1A_STOP_COLOR",
+      "fallback": "Required plain-text summary of the attachment.",
+      "color": "STARTER_US_EAST_2_COLOR",
+      "mrkdwn_in": ["fields"],
       "fields": [
         {
-          "value": "STARTER_US_EAST_1A_PVC_STOP_VALUES",
+          "title": "Cluster 2 start",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         },
         {
-          "value": "STARTER_US_EAST_1A_EPH_STOP_VALUES",
-          "short": true
-        }
-      ]
-    },{
-      "fallback": "These are the test results of worksapce startup stability.",
-      "fields": [
-        {
-          "title": "starter-us-east-1b PVC",
-          "short": true
-        },
-        {
-          "title": "starter-us-east-1b EPH",
+          "title": "Cluster 2 stop",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         }
       ]
     },
     {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_1B_START_COLOR",
+      "fallback": "Required plain-text summary of the attachment.",
+      "color": "STARTER_US_EAST_2A_COLOR",
+      "mrkdwn_in": ["fields"],
       "fields": [
         {
-          "value": "STARTER_US_EAST_1B_PVC_START_VALUES",
+          "title": "Cluster 2a start",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         },
         {
-          "value": "STARTER_US_EAST_1B_EPH_START_VALUES",
+          "title": "Cluster 2a stop",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         }
       ]
     },
     {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_1B_STOP_COLOR",
+      "fallback": "Required plain-text summary of the attachment.",
+      "color": "STARTER_US_EAST_2A_PREVIEW_COLOR",
+      "mrkdwn_in": ["fields"],
       "fields": [
         {
-          "value": "STARTER_US_EAST_1B_PVC_STOP_VALUES",
+          "title": "Cluster 2a preview start",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         },
         {
-          "value": "STARTER_US_EAST_1B_EPH_STOP_VALUES",
-          "short": true
-        }
-      ]
-    },{
-      "fallback": "These are the test results of worksapce startup stability.",
-      "fields": [
-        {
-          "title": "starter-us-east-2 PVC",
-          "short": true
-        },
-        {
-          "title": "starter-us-east-2 EPH",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2_START_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2_PVC_START_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2_EPH_START_VALUES",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2_STOP_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2_PVC_STOP_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2_EPH_STOP_VALUES",
-          "short": true
-        }
-      ]
-    },{
-      "fallback": "These are the test results of worksapce startup stability.",
-      "fields": [
-        {
-          "title": "starter-us-east-2a PVC",
-          "short": true
-        },
-        {
-          "title": "starter-us-east-2a EPH",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2A_START_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2A_PVC_START_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2A_EPH_START_VALUES",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2A_STOP_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2A_PVC_STOP_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2A_EPH_STOP_VALUES",
-          "short": true
-        }
-      ]
-    },{
-      "fallback": "These are the test results of worksapce startup stability.",
-      "fields": [
-        {
-          "title": "starter-us-east-2a PVC Preview",
-          "short": true
-        },
-        {
-          "title": "starter-us-east-2a EPH Preview",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2A_PREVIEW_START_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2A_PREVIEW_PVC_START_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2A_PREVIEW_EPH_START_VALUES",
-          "short": true
-        }
-      ]
-    },
-    {
-      "fallback": "These are the test results of worksapce startup stability.",
-      "color": "STARTER_US_EAST_2A_PREVIEW_STOP_COLOR",
-      "fields": [
-        {
-          "value": "STARTER_US_EAST_2A_PREVIEW_PVC_STOP_VALUES",
-          "short": true
-        },
-        {
-          "value": "STARTER_US_EAST_2A_PREVIEW_EPH_STOP_VALUES",
+          "title": "Cluster 2a preview stop",
+          "value": "*PVC* avg: xxs, max: xxxs, avg-diff: xx% \n*EPH* avg: xxs, max: xxxs, avg-diff: xx%",
           "short": true
         }
       ]

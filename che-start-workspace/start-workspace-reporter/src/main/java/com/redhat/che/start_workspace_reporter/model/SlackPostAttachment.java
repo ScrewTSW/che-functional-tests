@@ -7,18 +7,22 @@ public class SlackPostAttachment {
     private String fallback;
     private String pretext;
     private String color;
+    private List<String> mrkdwn_in;
     private List<SlackPostAttachmentField> fields;
 
     public SlackPostAttachment() {
         this.fallback = "This is a default fallback message";
+        this.pretext = null;
         this.color = null;
+        this.mrkdwn_in = null;
         this.fields = null;
     }
 
-    public SlackPostAttachment(String fallback, String pretext, String color, List<SlackPostAttachmentField> fields) {
+    public SlackPostAttachment(String fallback, String pretext, String color, List<String> mrkdwn_in, List<SlackPostAttachmentField> fields) {
         this.fallback = fallback;
         this.pretext = pretext;
         this.color = color;
+        this.mrkdwn_in = mrkdwn_in;
         this.fields = fields;
     }
 
@@ -46,6 +50,14 @@ public class SlackPostAttachment {
         this.color = color;
     }
 
+    public List<String> getMrkdwn_in() {
+        return mrkdwn_in;
+    }
+
+    public void setMrkdwn_in(List<String> mrkdwn_in) {
+        this.mrkdwn_in = mrkdwn_in;
+    }
+
     public List<SlackPostAttachmentField> getFields() {
         return fields;
     }
@@ -70,6 +82,19 @@ public class SlackPostAttachment {
             builder.append("]");
             fields = builder.toString();
         }
-        return "\"fallback\":"+this.fallback+",pretext:"+this.pretext+",\"color\":"+this.color+",\"fields\":"+fields+"}";
+        String mrkdwn = "";
+        if (this.mrkdwn_in != null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("[");
+            if (this.mrkdwn_in.size() > 0) {
+                for (String s : this.mrkdwn_in) {
+                    builder.append("\"").append(s).append("\",");
+                }
+                builder.deleteCharAt(builder.length() - 1);
+            }
+            builder.append("]");
+            mrkdwn = builder.toString();
+        }
+        return "\"fallback\":"+this.fallback+",pretext:"+this.pretext+",\"color\":"+this.color+",\"mrkdwn_in\":"+mrkdwn+",\"fields\":"+fields+"}";
     }
 }

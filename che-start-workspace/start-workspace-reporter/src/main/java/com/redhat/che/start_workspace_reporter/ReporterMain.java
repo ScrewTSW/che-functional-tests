@@ -63,7 +63,8 @@ public class ReporterMain {
     private static final float SLACK_UNSTABLE_PERCENTAGE = 1f; // above value
 
     public static void main(String[] args) {
-        HttpRequestWrapper wrapper = new HttpRequestWrapper(System.getenv("ZABBIX_URL"));
+        HttpRequestWrapper zabbixWrapper = new HttpRequestWrapper(System.getenv("ZABBIX_URL"));
+        HttpRequestWrapper slackWrapper = new HttpRequestWrapper(System.getenv("SLACK_URL"));
         HttpRequestWrapperResponse response = null;
         InputStream versionRequestIS = ReporterMain.class.getClassLoader().getResourceAsStream("version_request.json");
         InputStream loginRequestIS = ReporterMain.class.getClassLoader().getResourceAsStream("login_request.json");
@@ -83,7 +84,7 @@ public class ReporterMain {
         SlackPost slackPost = gson.fromJson(slackPostISReader, SlackPost.class);
 
         try {
-            HttpResponse tmp = wrapper.post("/api_jsonrpc.php", ContentType.APPLICATION_JSON.toString(), versionRequest.toString());
+            HttpResponse tmp = zabbixWrapper.post("/api_jsonrpc.php", ContentType.APPLICATION_JSON.toString(), versionRequest.toString());
             response = new HttpRequestWrapperResponse(tmp);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to contact zabbix on devshift.net:" + e.getLocalizedMessage());
@@ -101,7 +102,7 @@ public class ReporterMain {
         String zabbixAuthToken = null;
         loginRequest.setParams(parser.parse(gson.toJson(loginParams)));
         try {
-            HttpResponse tmp = wrapper.post("/api_jsonrpc.php", ContentType.APPLICATION_JSON.toString(), loginRequest.toString());
+            HttpResponse tmp = zabbixWrapper.post("/api_jsonrpc.php", ContentType.APPLICATION_JSON.toString(), loginRequest.toString());
             response = new HttpRequestWrapperResponse(tmp);
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to contact zabbix on devshift.net:" + e.getLocalizedMessage());
@@ -247,7 +248,7 @@ public class ReporterMain {
         historyParams.setTime_till(TIMESTAMP_YESTERDAY);
         getHistoryRequest.setParams(parser.parse(gson.toJson(historyParams)));
 
-        if (!grabHistoryDataFromZabbix(wrapper, response, getHistoryRequest, zabbixHistoryResults)) return;
+        if (!grabHistoryDataFromZabbix(zabbixWrapper, response, getHistoryRequest, zabbixHistoryResults)) return;
 
         calculateZabbixResults(zabbixHistoryResults,
                 zabbix_starter_us_east_1a_start_max, zabbix_starter_us_east_1b_start_max, zabbix_starter_us_east_2_start_max, zabbix_starter_us_east_2a_start_max, zabbix_starter_us_east_preview_2a_start_max,
@@ -307,7 +308,7 @@ public class ReporterMain {
         historyParams.setTime_till(TIMESTAMP_NOW);
         getHistoryRequest.setParams(parser.parse(gson.toJson(historyParams)));
 
-        if (!grabHistoryDataFromZabbix(wrapper, response, getHistoryRequest, zabbixHistoryResults)) return;
+        if (!grabHistoryDataFromZabbix(zabbixWrapper, response, getHistoryRequest, zabbixHistoryResults)) return;
 
         calculateZabbixResults(zabbixHistoryResults,
                 zabbix_starter_us_east_1a_start_max, zabbix_starter_us_east_1b_start_max, zabbix_starter_us_east_2_start_max, zabbix_starter_us_east_2a_start_max, zabbix_starter_us_east_preview_2a_start_max,
@@ -319,90 +320,87 @@ public class ReporterMain {
                 zabbix_starter_us_east_eph_1a_stop_max, zabbix_starter_us_east_eph_1b_stop_max, zabbix_starter_us_east_eph_2_stop_max, zabbix_starter_us_east_eph_2a_stop_max, zabbix_starter_us_east_eph_preview_2a_stop_max,
                 zabbix_starter_us_east_eph_1a_stop_avg, zabbix_starter_us_east_eph_1b_stop_avg, zabbix_starter_us_east_eph_2_stop_avg, zabbix_starter_us_east_eph_2a_stop_avg, zabbix_starter_us_east_eph_preview_2a_stop_avg);
 
-        LOG.info("Yesterday worksapce startup ephemeral 1a: max:" + yesterday_zabbix_starter_us_east_eph_1a_start_max.get() +
-                " avg:" + yesterday_zabbix_starter_us_east_eph_1a_start_avg.get());
-
-        LOG.info("Worksapce startup ephemeral 1a: max:" + zabbix_starter_us_east_eph_1a_start_max.get() +
-                " avg:" + zabbix_starter_us_east_eph_1a_start_avg.get() +
-                " diff:" + String.format("%.2f",getPercentageDifference(yesterday_zabbix_starter_us_east_eph_1a_start_max, zabbix_starter_us_east_eph_1a_start_max)) + "%");
-
         List<SlackPostAttachment> attachments = slackPost.getAttachments();
         List<SlackPostAttachment> newAttachments = new ArrayList<>();
         for (SlackPostAttachment a : attachments) {
             String attachmentColor = a.getColor();
             // If it's a field that needs to have it's values set
             if (attachmentColor != null) {
-                LOG.info("Found attachment with special values:"+attachmentColor);
                 switch(attachmentColor) {
-                    case "STARTER_US_EAST_1A_START_COLOR":
-                        Map<String, Float> start_1a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1a_start_max, yesterday_zabbix_starter_us_east_1a_start_avg,
+                    case "STARTER_US_EAST_1A_COLOR":
+                        Map<String, Float> starter_1a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1a_start_max, yesterday_zabbix_starter_us_east_1a_start_avg,
                                 yesterday_zabbix_starter_us_east_eph_1a_start_max, yesterday_zabbix_starter_us_east_eph_1a_start_avg,
                                 zabbix_starter_us_east_1a_start_max, zabbix_starter_us_east_1a_start_avg,
-                                zabbix_starter_us_east_eph_1a_start_max, zabbix_starter_us_east_eph_1a_start_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_1a_start_max, zabbix_starter_us_east_1a_start_avg, zabbix_starter_us_east_eph_1a_start_max, zabbix_starter_us_east_eph_1a_start_avg, a, start_1a_changes, "start-avg", "start-max");
-                        break;
-                    case "STARTER_US_EAST_1A_STOP_COLOR":
-                        Map<String, Float> stop_1a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1a_stop_max, yesterday_zabbix_starter_us_east_1a_stop_avg,
+                                zabbix_starter_us_east_eph_1a_start_max, zabbix_starter_us_east_eph_1a_start_avg,
+                                yesterday_zabbix_starter_us_east_1a_stop_max, yesterday_zabbix_starter_us_east_1a_stop_avg,
                                 yesterday_zabbix_starter_us_east_eph_1a_stop_max, yesterday_zabbix_starter_us_east_eph_1a_stop_avg,
                                 zabbix_starter_us_east_1a_stop_max, zabbix_starter_us_east_1a_stop_avg,
                                 zabbix_starter_us_east_eph_1a_stop_max, zabbix_starter_us_east_eph_1a_stop_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_1a_stop_max, zabbix_starter_us_east_1a_stop_avg, zabbix_starter_us_east_eph_1a_stop_max, zabbix_starter_us_east_eph_1a_stop_avg, a, stop_1a_changes, "stop-avg", "stop-max");
+                        createAndSetFields(zabbix_starter_us_east_1a_start_max, zabbix_starter_us_east_1a_start_avg,
+                                zabbix_starter_us_east_eph_1a_start_max, zabbix_starter_us_east_eph_1a_start_avg,
+                                zabbix_starter_us_east_1a_stop_max, zabbix_starter_us_east_1a_stop_avg,
+                                zabbix_starter_us_east_eph_1a_stop_max, zabbix_starter_us_east_eph_1a_stop_avg,
+                                a, starter_1a_changes, "1a");
                         break;
-                    case "STARTER_US_EAST_1B_START_COLOR":
-                        Map<String, Float> start_1b_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1b_start_max, yesterday_zabbix_starter_us_east_1b_start_avg,
+                    case "STARTER_US_EAST_1B_COLOR":
+                        Map<String, Float> starter_1b_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1b_start_max, yesterday_zabbix_starter_us_east_1b_start_avg,
                                 yesterday_zabbix_starter_us_east_eph_1b_start_max, yesterday_zabbix_starter_us_east_eph_1b_start_avg,
                                 zabbix_starter_us_east_1b_start_max, zabbix_starter_us_east_1b_start_avg,
-                                zabbix_starter_us_east_eph_1b_start_max, zabbix_starter_us_east_eph_1b_start_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_1b_start_max, zabbix_starter_us_east_1b_start_avg, zabbix_starter_us_east_eph_1b_start_max, zabbix_starter_us_east_eph_1b_start_avg, a, start_1b_changes, "start-avg", "start-max");
-                        break;
-                    case "STARTER_US_EAST_1B_STOP_COLOR":
-                        Map<String, Float> stop_1b_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_1b_stop_max, yesterday_zabbix_starter_us_east_1b_stop_avg,
+                                zabbix_starter_us_east_eph_1b_start_max, zabbix_starter_us_east_eph_1b_start_avg,
+                                yesterday_zabbix_starter_us_east_1b_stop_max, yesterday_zabbix_starter_us_east_1b_stop_avg,
                                 yesterday_zabbix_starter_us_east_eph_1b_stop_max, yesterday_zabbix_starter_us_east_eph_1b_stop_avg,
                                 zabbix_starter_us_east_1b_stop_max, zabbix_starter_us_east_1b_stop_avg,
                                 zabbix_starter_us_east_eph_1b_stop_max, zabbix_starter_us_east_eph_1b_stop_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_1b_stop_max, zabbix_starter_us_east_1b_stop_avg, zabbix_starter_us_east_eph_1b_stop_max, zabbix_starter_us_east_eph_1b_stop_avg, a, stop_1b_changes, "stop-avg", "stop-max");
+                        createAndSetFields(zabbix_starter_us_east_1b_start_max, zabbix_starter_us_east_1b_start_avg,
+                                zabbix_starter_us_east_eph_1b_start_max, zabbix_starter_us_east_eph_1b_start_avg,
+                                zabbix_starter_us_east_1b_stop_max, zabbix_starter_us_east_1b_stop_avg,
+                                zabbix_starter_us_east_eph_1b_stop_max, zabbix_starter_us_east_eph_1b_stop_avg,
+                                a, starter_1b_changes, "1b");
                         break;
-                    case "STARTER_US_EAST_2_START_COLOR":
-                        Map<String, Float> start_2_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2_start_max, yesterday_zabbix_starter_us_east_2_start_avg,
+                    case "STARTER_US_EAST_2_COLOR":
+                        Map<String, Float> starter_2_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2_start_max, yesterday_zabbix_starter_us_east_2_start_avg,
                                 yesterday_zabbix_starter_us_east_eph_2_start_max, yesterday_zabbix_starter_us_east_eph_2_start_avg,
                                 zabbix_starter_us_east_2_start_max, zabbix_starter_us_east_2_start_avg,
-                                zabbix_starter_us_east_eph_2_start_max, zabbix_starter_us_east_eph_2_start_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_2_start_max, zabbix_starter_us_east_2_start_avg, zabbix_starter_us_east_eph_2_start_max, zabbix_starter_us_east_eph_2_start_avg, a, start_2_changes, "start-avg", "start-max");
-                        break;
-                    case "STARTER_US_EAST_2_STOP_COLOR":
-                        Map<String, Float> stop_2_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2_stop_max, yesterday_zabbix_starter_us_east_2_stop_avg,
+                                zabbix_starter_us_east_eph_2_start_max, zabbix_starter_us_east_eph_2_start_avg,
+                                yesterday_zabbix_starter_us_east_2_stop_max, yesterday_zabbix_starter_us_east_2_stop_avg,
                                 yesterday_zabbix_starter_us_east_eph_2_stop_max, yesterday_zabbix_starter_us_east_eph_2_stop_avg,
                                 zabbix_starter_us_east_2_stop_max, zabbix_starter_us_east_2_stop_avg,
                                 zabbix_starter_us_east_eph_2_stop_max, zabbix_starter_us_east_eph_2_stop_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_2_stop_max, zabbix_starter_us_east_2_stop_avg, zabbix_starter_us_east_eph_2_stop_max, zabbix_starter_us_east_eph_2_stop_avg, a, stop_2_changes, "stop-avg", "stop-max");
+                        createAndSetFields(zabbix_starter_us_east_2_start_max, zabbix_starter_us_east_2_start_avg,
+                                zabbix_starter_us_east_eph_2_start_max, zabbix_starter_us_east_eph_2_start_avg,
+                                zabbix_starter_us_east_2_stop_max, zabbix_starter_us_east_2_stop_avg,
+                                zabbix_starter_us_east_eph_2_stop_max, zabbix_starter_us_east_eph_2_stop_avg,
+                                a, starter_2_changes, "2");
                         break;
-                    case "STARTER_US_EAST_2A_START_COLOR":
-                        Map<String, Float> start_2a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2a_start_max, yesterday_zabbix_starter_us_east_2a_start_avg,
+                    case "STARTER_US_EAST_2A_COLOR":
+                        Map<String, Float> starter_2a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2a_start_max, yesterday_zabbix_starter_us_east_2a_start_avg,
                                 yesterday_zabbix_starter_us_east_eph_2a_start_max, yesterday_zabbix_starter_us_east_eph_2a_start_avg,
                                 zabbix_starter_us_east_2a_start_max, zabbix_starter_us_east_2a_start_avg,
-                                zabbix_starter_us_east_eph_2a_start_max, zabbix_starter_us_east_eph_2a_start_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_2a_start_max, zabbix_starter_us_east_2a_start_avg, zabbix_starter_us_east_eph_2a_start_max, zabbix_starter_us_east_eph_2a_start_avg, a, start_2a_changes, "start-avg", "start-max");
-                        break;
-                    case "STARTER_US_EAST_2A_STOP_COLOR":
-                        Map<String, Float> stop_2a_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_2a_stop_max, yesterday_zabbix_starter_us_east_2a_stop_avg,
+                                zabbix_starter_us_east_eph_2a_start_max, zabbix_starter_us_east_eph_2a_start_avg,
+                                yesterday_zabbix_starter_us_east_2a_stop_max, yesterday_zabbix_starter_us_east_2a_stop_avg,
                                 yesterday_zabbix_starter_us_east_eph_2a_stop_max, yesterday_zabbix_starter_us_east_eph_2a_stop_avg,
                                 zabbix_starter_us_east_2a_stop_max, zabbix_starter_us_east_2a_stop_avg,
                                 zabbix_starter_us_east_eph_2a_stop_max, zabbix_starter_us_east_eph_2a_stop_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_2a_stop_max, zabbix_starter_us_east_2a_stop_avg, zabbix_starter_us_east_eph_2a_stop_max, zabbix_starter_us_east_eph_2a_stop_avg, a, stop_2a_changes, "stop-avg", "stop-max");
+                        createAndSetFields(zabbix_starter_us_east_2a_start_max, zabbix_starter_us_east_2a_start_avg,
+                                zabbix_starter_us_east_eph_2a_start_max, zabbix_starter_us_east_eph_2a_start_avg,
+                                zabbix_starter_us_east_2a_stop_max, zabbix_starter_us_east_2a_stop_avg,
+                                zabbix_starter_us_east_eph_2a_stop_max, zabbix_starter_us_east_eph_2a_stop_avg,
+                                a, starter_2a_changes, "2a");
                         break;
-                    case "STARTER_US_EAST_2A_PREVIEW_START_COLOR":
-                        Map<String, Float> start_2a_preview_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_preview_2a_start_max, yesterday_zabbix_starter_us_east_preview_2a_start_avg,
+                    case "STARTER_US_EAST_2A_PREVIEW_COLOR":
+                        Map<String, Float> starter_2a_preview_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_preview_2a_start_max, yesterday_zabbix_starter_us_east_preview_2a_start_avg,
                                 yesterday_zabbix_starter_us_east_eph_preview_2a_start_max, yesterday_zabbix_starter_us_east_eph_preview_2a_start_avg,
                                 zabbix_starter_us_east_preview_2a_start_max, zabbix_starter_us_east_preview_2a_start_avg,
-                                zabbix_starter_us_east_eph_preview_2a_start_max, zabbix_starter_us_east_eph_preview_2a_start_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_preview_2a_start_max, zabbix_starter_us_east_preview_2a_start_avg, zabbix_starter_us_east_eph_preview_2a_start_max, zabbix_starter_us_east_eph_preview_2a_start_avg, a, start_2a_preview_changes, "start-avg", "start-max");
-                        break;
-                    case "STARTER_US_EAST_2A_PREVIEW_STOP_COLOR":
-                        Map<String, Float> stop_2a_preview_changes = getMaxChangeAndSetColor(yesterday_zabbix_starter_us_east_preview_2a_stop_max, yesterday_zabbix_starter_us_east_preview_2a_stop_avg,
+                                zabbix_starter_us_east_eph_preview_2a_start_max, zabbix_starter_us_east_eph_preview_2a_start_avg,
+                                yesterday_zabbix_starter_us_east_preview_2a_stop_max, yesterday_zabbix_starter_us_east_preview_2a_stop_avg,
                                 yesterday_zabbix_starter_us_east_eph_preview_2a_stop_max, yesterday_zabbix_starter_us_east_eph_preview_2a_stop_avg,
                                 zabbix_starter_us_east_preview_2a_stop_max, zabbix_starter_us_east_preview_2a_stop_avg,
                                 zabbix_starter_us_east_eph_preview_2a_stop_max, zabbix_starter_us_east_eph_preview_2a_stop_avg, a);
-                        createAndSetFields(zabbix_starter_us_east_preview_2a_stop_max, zabbix_starter_us_east_preview_2a_stop_avg, zabbix_starter_us_east_eph_preview_2a_stop_max, zabbix_starter_us_east_eph_preview_2a_stop_avg, a, stop_2a_preview_changes, "stop-avg", "stop-max");
+                        createAndSetFields(zabbix_starter_us_east_preview_2a_start_max, zabbix_starter_us_east_preview_2a_start_avg,
+                                zabbix_starter_us_east_eph_preview_2a_start_max, zabbix_starter_us_east_eph_preview_2a_start_avg,
+                                zabbix_starter_us_east_preview_2a_stop_max, zabbix_starter_us_east_preview_2a_stop_avg,
+                                zabbix_starter_us_east_eph_preview_2a_stop_max, zabbix_starter_us_east_eph_preview_2a_stop_avg,
+                                a, starter_2a_preview_changes, "2a preview");
                         break;
                     default: break;
                 }
@@ -410,51 +408,101 @@ public class ReporterMain {
             newAttachments.add(a);
         }
         slackPost.setAttachments(newAttachments);
+        String channel = System.getenv("SLACK_CHANNEL");
+        slackPost.setChannel(channel != null ? channel : "#devtools-che");
         LOG.info(gson.toJson(slackPost));
+
+        try {
+            HttpResponse tmp = slackWrapper.post("", ContentType.APPLICATION_JSON.toString(), gson.toJson(slackPost));
+            response = new HttpRequestWrapperResponse(tmp);
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "Failed to contact slack bot:" + e.getLocalizedMessage());
+        } catch (IllegalArgumentException e) {
+            LOG.log(Level.SEVERE, "Wrapper failed to parse HtppResponse:" + e.getLocalizedMessage());
+        }
+        if (response != null) {
+            if (responseSuccess(response)) {
+                LOG.log(Level.INFO, "Slack message sent successfully.");
+            } else {
+                try {
+                    LOG.log(Level.SEVERE, "Failed to send slack message:"+response.grabContent());
+                } catch (IOException e) {
+                    LOG.log(Level.SEVERE, "Failed to parse slack error response:"+e.getLocalizedMessage());
+                }
+            }
+        }
     }
 
     private static void createAndSetFields(AtomicReference<Float> zabbix_starter_us_east_1a_start_max, AtomicReference<Float> zabbix_starter_us_east_1a_start_avg,
                                            AtomicReference<Float> zabbix_starter_us_east_eph_1a_start_max, AtomicReference<Float> zabbix_starter_us_east_eph_1a_start_avg,
-                                           SlackPostAttachment a, Map<String, Float> start_1a_changes, String avg, String max) {
-        List<SlackPostAttachmentField> start_1a_fields = new ArrayList<>();
-        String pvcFieldString = avg + String.format("\t%.1f s", zabbix_starter_us_east_1a_start_avg.get()/1000) + String.format("\t%.2f", start_1a_changes.get("pvc_avg")) + "%\n" +
-                                max + String.format("\t%.1f s", zabbix_starter_us_east_1a_start_max.get()/1000) + String.format("\t%.2f", start_1a_changes.get("pvc_max")) + "%\n";
-        String ephFieldString = avg + String.format("\t%.1f s", zabbix_starter_us_east_eph_1a_start_avg.get()/1000) + String.format("\t%.2f", start_1a_changes.get("eph_avg")) + "%\n" +
-                                max + String.format("\t%.1f s", zabbix_starter_us_east_eph_1a_start_max.get()/1000) + String.format("\t%.2f", start_1a_changes.get("eph_max")) + "%\n";
-        SlackPostAttachmentField start_1a_field_pvc = new SlackPostAttachmentField(null,
-                (zabbix_starter_us_east_1a_start_avg.get() != MINMAX_INIT_VALUE && zabbix_starter_us_east_1a_start_max.get() != MINMAX_INIT_VALUE) ? pvcFieldString : null,
-                true);
-        SlackPostAttachmentField start_1a_field_eph = new SlackPostAttachmentField(null,
-                (zabbix_starter_us_east_eph_1a_start_avg.get() != MINMAX_INIT_VALUE && zabbix_starter_us_east_eph_1a_start_max.get() != MINMAX_INIT_VALUE) ? ephFieldString : null,
-                true);
-        start_1a_fields.add(start_1a_field_pvc);
-        start_1a_fields.add(start_1a_field_eph);
-        a.setFields(start_1a_fields);
+                                           AtomicReference<Float> zabbix_starter_us_east_1a_stop_max, AtomicReference<Float> zabbix_starter_us_east_1a_stop_avg,
+                                           AtomicReference<Float> zabbix_starter_us_east_eph_1a_stop_max, AtomicReference<Float> zabbix_starter_us_east_eph_1a_stop_avg,
+                                           SlackPostAttachment a, Map<String, Float> cluster_changes, String clusterName) {
+        List<SlackPostAttachmentField> cluster_fields = new ArrayList<>();
+        String startTimesString = "*PVC* avg:" + String.format(" %.1fs", zabbix_starter_us_east_1a_start_avg.get()/1000) +
+                ", max:" + String.format(" %.1fs", zabbix_starter_us_east_1a_start_max.get()/1000) + "\n" +
+                "avg-diff:" + String.format(" %.2f", cluster_changes.get("pvc_start_avg")) + "%\n" +
+                "*EPH* avg:" + String.format(" %.1fs", zabbix_starter_us_east_eph_1a_start_avg.get()/1000) +
+                ", max:" + String.format(" %.1fs", zabbix_starter_us_east_eph_1a_start_max.get()/1000) + "\n" +
+                "avg-diff:" + String.format(" %.2f", cluster_changes.get("eph_start_avg")) + "%";
+        SlackPostAttachmentField cluster_start_times = new SlackPostAttachmentField("Cluster  "+clusterName+" start", startTimesString, true);
+        String stopTimesString = "*PVC* avg:" + String.format(" %.1fs", zabbix_starter_us_east_1a_stop_avg.get()/1000) +
+                ", max:" + String.format(" %.1fs", zabbix_starter_us_east_1a_stop_max.get()/1000) + "\n" +
+                "avg-diff:" + String.format(" %.2f", cluster_changes.get("pvc_stop_avg")) + "%\n" +
+                "*EPH* avg:" + String.format(" %.1fs", zabbix_starter_us_east_eph_1a_stop_avg.get()/1000) +
+                ", max:" + String.format(" %.1fs", zabbix_starter_us_east_eph_1a_stop_max.get()/1000) + "\n" +
+                "avg-diff:" + String.format(" %.2f", cluster_changes.get("eph_stop_avg")) + "%";
+        SlackPostAttachmentField cluster_stop_times = new SlackPostAttachmentField("Cluster  "+clusterName+" stop", stopTimesString, true);
+        cluster_fields.add(cluster_start_times);
+        cluster_fields.add(cluster_stop_times);
+        a.setFields(cluster_fields);
     }
 
-    private static Map<String, Float> getMaxChangeAndSetColor(AtomicReference<Float> oldPvcMax,
-                                                              AtomicReference<Float> oldPvcAvg,
-                                                              AtomicReference<Float> oldEphMax,
-                                                              AtomicReference<Float> oldEphAvg,
-                                                              AtomicReference<Float> newPvcMax,
-                                                              AtomicReference<Float> newPvcAvg,
-                                                              AtomicReference<Float> newEphMax,
-                                                              AtomicReference<Float> newEphAvg,
+    private static Map<String, Float> getMaxChangeAndSetColor(AtomicReference<Float> oldPvcStartMax,
+                                                              AtomicReference<Float> oldPvcStartAvg,
+                                                              AtomicReference<Float> oldEphStartMax,
+                                                              AtomicReference<Float> oldEphStartAvg,
+                                                              AtomicReference<Float> newPvcStartMax,
+                                                              AtomicReference<Float> newPvcStartAvg,
+                                                              AtomicReference<Float> newEphStartMax,
+                                                              AtomicReference<Float> newEphStartAvg,
+                                                              AtomicReference<Float> oldPvcStopMax,
+                                                              AtomicReference<Float> oldPvcStopAvg,
+                                                              AtomicReference<Float> oldEphStopMax,
+                                                              AtomicReference<Float> oldEphStopAvg,
+                                                              AtomicReference<Float> newPvcStopMax,
+                                                              AtomicReference<Float> newPvcStopAvg,
+                                                              AtomicReference<Float> newEphStopMax,
+                                                              AtomicReference<Float> newEphStopAvg,
                                                               SlackPostAttachment a) {
         Map<String, Float> changes = getChangesMap(
-                oldPvcMax, oldPvcAvg,
-                oldEphMax, oldEphAvg,
-                newPvcMax, newPvcAvg,
-                newEphMax, newEphAvg);
-        if (oldEphAvg.get() != MINMAX_INIT_VALUE &&
-            oldEphMax.get() != MINMAX_INIT_VALUE &&
-            oldPvcAvg.get() != MINMAX_INIT_VALUE &&
-            oldPvcMax.get() != MINMAX_INIT_VALUE &&
-            newEphAvg.get() != MINMAX_INIT_VALUE &&
-            newEphMax.get() != MINMAX_INIT_VALUE &&
-            newPvcAvg.get() != MINMAX_INIT_VALUE &&
-            newPvcMax.get() != MINMAX_INIT_VALUE) {
-            a.setColor(getColorBasedOnPercentage(getMaxChange(changes)));
+                oldPvcStartMax, oldPvcStartAvg,
+                oldEphStartMax, oldEphStartAvg,
+                newPvcStartMax, newPvcStartAvg,
+                newEphStartMax, newEphStartAvg,
+                oldPvcStopMax, oldPvcStopAvg,
+                oldEphStopMax, oldEphStopAvg,
+                newPvcStopMax, newPvcStopAvg,
+                newEphStopMax, newEphStopAvg);
+        if (oldEphStartAvg.get() != MINMAX_INIT_VALUE &&
+            oldEphStartMax.get() != MINMAX_INIT_VALUE &&
+            oldPvcStartAvg.get() != MINMAX_INIT_VALUE &&
+            oldPvcStartMax.get() != MINMAX_INIT_VALUE &&
+            newEphStartAvg.get() != MINMAX_INIT_VALUE &&
+            newEphStartMax.get() != MINMAX_INIT_VALUE &&
+            newPvcStartAvg.get() != MINMAX_INIT_VALUE &&
+            newPvcStartMax.get() != MINMAX_INIT_VALUE &&
+            oldEphStopAvg.get() != MINMAX_INIT_VALUE &&
+            oldEphStopMax.get() != MINMAX_INIT_VALUE &&
+            oldPvcStopAvg.get() != MINMAX_INIT_VALUE &&
+            oldPvcStopMax.get() != MINMAX_INIT_VALUE &&
+            newEphStopAvg.get() != MINMAX_INIT_VALUE &&
+            newEphStopMax.get() != MINMAX_INIT_VALUE &&
+            newPvcStopAvg.get() != MINMAX_INIT_VALUE &&
+            newPvcStopMax.get() != MINMAX_INIT_VALUE) {
+            float percentageChange = getMaxChange(changes);
+            LOG.info("Average diff percentage:" + percentageChange + " color:" + getColorBasedOnPercentage(percentageChange));
+            a.setColor(getColorBasedOnPercentage(percentageChange));
         } else {
             a.setColor(null);
         }
@@ -468,21 +516,29 @@ public class ReporterMain {
     }
 
     private static float getMaxChange(Map<String,Float> changes) {
-        return Math.max(changes.get("pvc_avg"),
-                    Math.max(changes.get("pvc_max"),
-                    Math.max(changes.get("eph_avg"),changes.get("eph_max")
+        return Math.max(changes.get("pvc_start_avg"),
+                    Math.max(changes.get("eph_start_avg"),
+                    Math.max(changes.get("pvc_stop_avg"), changes.get("eph_stop_avg")
                )));
     }
 
-    private static Map<String,Float> getChangesMap(AtomicReference<Float> oldPvcMax,  AtomicReference<Float> oldPvcAvg,
-                                                   AtomicReference<Float> oldEphMax,  AtomicReference<Float> oldEphAvg,
-                                                   AtomicReference<Float> newPvcMax,  AtomicReference<Float> newPvcAvg,
-                                                   AtomicReference<Float> newEphMax,  AtomicReference<Float> newEphAvg) {
+    private static Map<String,Float> getChangesMap(AtomicReference<Float> oldPvcStartMax,  AtomicReference<Float> oldPvcStartAvg,
+                                                   AtomicReference<Float> oldEphStartMax,  AtomicReference<Float> oldEphStartAvg,
+                                                   AtomicReference<Float> newPvcStartMax,  AtomicReference<Float> newPvcStartAvg,
+                                                   AtomicReference<Float> newEphStartMax,  AtomicReference<Float> newEphStartAvg,
+                                                   AtomicReference<Float> oldPvcStopMax,  AtomicReference<Float> oldPvcStopAvg,
+                                                   AtomicReference<Float> oldEphStopMax,  AtomicReference<Float> oldEphStopAvg,
+                                                   AtomicReference<Float> newPvcStopMax,  AtomicReference<Float> newPvcStopAvg,
+                                                   AtomicReference<Float> newEphStopMax,  AtomicReference<Float> newEphStopAvg) {
         Map<String, Float> changes = new HashMap<>();
-        changes.put("pvc_avg", getPercentageDifference(oldPvcAvg, newPvcAvg));
-        changes.put("pvc_max", getPercentageDifference(oldPvcMax, newPvcMax));
-        changes.put("eph_avg", getPercentageDifference(oldEphAvg, newEphAvg));
-        changes.put("eph_max", getPercentageDifference(oldEphMax, newEphMax));
+        changes.put("pvc_start_avg", getPercentageDifference(oldPvcStartAvg, newPvcStartAvg));
+        changes.put("pvc_start_max", getPercentageDifference(oldPvcStartMax, newPvcStartMax));
+        changes.put("eph_start_avg", getPercentageDifference(oldEphStartAvg, newEphStartAvg));
+        changes.put("eph_start_max", getPercentageDifference(oldEphStartMax, newEphStartMax));
+        changes.put("pvc_stop_avg", getPercentageDifference(oldPvcStopAvg, newPvcStopAvg));
+        changes.put("pvc_stop_max", getPercentageDifference(oldPvcStopMax, newPvcStopMax));
+        changes.put("eph_stop_avg", getPercentageDifference(oldEphStopAvg, newEphStopAvg));
+        changes.put("eph_stop_max", getPercentageDifference(oldEphStopMax, newEphStopMax));
         return changes;
     }
 
@@ -496,7 +552,6 @@ public class ReporterMain {
     }
 
     private static boolean grabHistoryDataFromZabbix(HttpRequestWrapper wrapper, HttpRequestWrapperResponse response, JSONRPCRequest getHistoryRequest, List<ZabbixHistoryMetricsEntry> zabbixHistoryResults) {
-        LOG.info("Zabbix get history request:\n"+getHistoryRequest.toString());
         try {
             HttpResponse tmp = wrapper.post("/api_jsonrpc.php", ContentType.APPLICATION_JSON.toString(), getHistoryRequest.toString());
             response = new HttpRequestWrapperResponse(tmp);
@@ -683,16 +738,7 @@ public class ReporterMain {
 
     private static boolean responseSuccess(HttpRequestWrapperResponse response) {
         int responseStatusCode = response.getStatusCode();
-        if (responseStatusCode != 200) return false;
-        try {
-            String responseString = response.grabContent();
-            LOG.log(Level.INFO, "Status:" + responseStatusCode + "\n"
-                                    + "Response:" + responseString);
-        } catch (IOException e) {
-            LOG.log(Level.SEVERE, "Failed to get response content:" + e.getLocalizedMessage());
-            return false;
-        }
-        return true;
+        return responseStatusCode == 200;
     }
 
     private static void updateValues(AtomicReference<Float> max, AtomicReference<Float> avg, float value) {

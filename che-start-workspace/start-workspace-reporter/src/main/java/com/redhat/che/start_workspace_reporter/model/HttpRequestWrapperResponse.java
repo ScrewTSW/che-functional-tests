@@ -86,12 +86,10 @@ public class HttpRequestWrapperResponse {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             StringBuilder sb = new StringBuilder();
             String buffer;
-//            LOG.log(Level.INFO, "Parsing content input stream");
             while ((buffer = bufferedReader.readLine()) != null) {
                 sb.append(buffer);
             }
             this.rawData = sb.toString();
-//            LOG.log(Level.INFO, "Parsed message string:" + this.rawData);
         }
         return rawData;
     }
