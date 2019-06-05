@@ -1,7 +1,8 @@
 {
-  "channel": "@tdancs",
+  "channel": "#devtools-che",
   "attachments": [
     {
+      "pretext": "Workspace startup daily status report",
       "fallback": "These are the test results of worksapce startup stability.",
       "fields": [
         {

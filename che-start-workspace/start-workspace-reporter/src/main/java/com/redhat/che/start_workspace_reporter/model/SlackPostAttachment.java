@@ -5,6 +5,7 @@ import java.util.List;
 public class SlackPostAttachment {
 
     private String fallback;
+    private String pretext;
     private String color;
     private List<SlackPostAttachmentField> fields;
 
@@ -14,8 +15,9 @@ public class SlackPostAttachment {
         this.fields = null;
     }
 
-    public SlackPostAttachment(String fallback, String color, List<SlackPostAttachmentField> fields) {
+    public SlackPostAttachment(String fallback, String pretext, String color, List<SlackPostAttachmentField> fields) {
         this.fallback = fallback;
+        this.pretext = pretext;
         this.color = color;
         this.fields = fields;
     }
@@ -26,6 +28,14 @@ public class SlackPostAttachment {
 
     public void setFallback(String fallback) {
         this.fallback = fallback;
+    }
+
+    public String getPretext() {
+        return pretext;
+    }
+
+    public void setPretext(String pretext) {
+        this.pretext = pretext;
     }
 
     public String getColor() {
@@ -60,6 +70,6 @@ public class SlackPostAttachment {
             builder.append("]");
             fields = builder.toString();
         }
-        return "\"fallback\":"+this.fallback+",\"color\":"+this.color+",\"fields\":"+fields+"}";
+        return "\"fallback\":"+this.fallback+",pretext:"+this.pretext+",\"color\":"+this.color+",\"fields\":"+fields+"}";
     }
 }
