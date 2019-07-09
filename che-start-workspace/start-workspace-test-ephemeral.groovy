@@ -12,7 +12,7 @@ def silent_sh(cmd) {
 }
 
 pipeline {
-    agent { label 'osioperf-master2' }
+    agent none
     environment {
         USERS_PROPERTIES_FILE = credentials('${USERS_PROPERTIES_FILE_ID}')
         LOG_DIR = ""
