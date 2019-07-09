@@ -35,11 +35,6 @@ done
 checkParams
 
 chmod +x simple-pod.sh
-chmod +x init-env.sh
-
-
-echo "Initializing environment"
-./init-env.sh
 
 #login and choose right project
 chrlen=$((${#USERNAME}-3))
