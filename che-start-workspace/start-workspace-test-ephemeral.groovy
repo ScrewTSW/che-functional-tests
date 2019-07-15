@@ -12,7 +12,7 @@ def silent_sh(cmd) {
 }
 
 pipeline {
-    agent none
+    agent { label 'osioche-crw-jenkins-node' }
     environment {
         USERS_PROPERTIES_FILE = credentials('${USERS_PROPERTIES_FILE_ID}')
         LOG_DIR = ""
